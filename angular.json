@@ -107,9 +107,21 @@
           "options": {
             "browserTarget": "WebBefragung:build"
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
+          }
         }
       }
     }
   },
-  "defaultProject": "WebBefragung"
+  "defaultProject": "WebBefragung",
+  "cli": {
+    "defaultCollection": "@angular-eslint/schematics"
+  }
 }

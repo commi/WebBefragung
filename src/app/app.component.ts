@@ -1,7 +1,7 @@
 import {AfterContentChecked, Component, NgZone, SecurityContext} from '@angular/core';
-import {LocalStorageService} from "ngx-store";
-import {noop} from "rxjs";
+import {noop, from} from "rxjs";
 import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
+import {NgForage} from "ngforage";
 
 type Answer = {
 	questionId: string,
@@ -25,6 +25,8 @@ const questions = [
 		title: 'Frage 2'
 	}
 ];
+
+const ANSWERS_KEY = 'answers';
 
 @Component({
 	selector: 'app-root',
@@ -124,9 +126,9 @@ const questions = [
 export class AppComponent implements AfterContentChecked {
 
 	constructor(
-		private ngZone: NgZone,
-		private localStorage: LocalStorageService,
-		private _sanitizer: DomSanitizer) {
+		private readonly ngZone: NgZone,
+		private readonly _sanitizer: DomSanitizer,
+		private readonly ngf: NgForage,) {
 
 		try {
 			this.viewstate.recordingSupported = MediaRecorder?.isTypeSupported("audio/webm");
@@ -134,7 +136,26 @@ export class AppComponent implements AfterContentChecked {
 		}
 
 		// Load answers
-		this.answers = this.localStorage.get('answers') ?? [];
+		this.loadAnswers();
+	}
+
+	private async loadAnswers(): Promise<void> {
+		try {
+			this.answers = await this.ngf.getItem(ANSWERS_KEY) ?? [];
+			this.populateAnswers();
+		} finally {
+			this.viewstate.answersLoaded = true;
+		}
+	}
+
+	clearAnswers() {
+		this.answers = [];
+		this.populateAnswers();
+	}
+
+	private populateAnswers() {
+		if (!this.answers?.length)
+			this.answers = [];
 
 		// populate answers
 		this.questions.forEach(q => {
@@ -149,6 +170,7 @@ export class AppComponent implements AfterContentChecked {
 	readonly questions = questions;
 
 	viewstate = {
+		answersLoaded: false,
 		recordingSupported: false
 	}
 
@@ -161,27 +183,28 @@ export class AppComponent implements AfterContentChecked {
 	answers: Array<Answer> = [];
 
 	ngAfterContentChecked() {
-		console.log('next');
-		//this.answers?.save()
+		this.ngZone.runOutsideAngular(() => {
+			this.asyncSaveAnswers();
+		})
+	}
 
-		this.localStorage.set('answers', this.answers);
+	private readonly asyncSaveAnswers = debounce(() => {
+		this.saveAnswers();
+	}, 1500);
+
+	private async saveAnswers() {
+		if (JSON.stringify(await this.ngf.getItem(ANSWERS_KEY)) !== JSON.stringify(this.answers)) {
+			console.log('save answers');
+			await this.ngf.setItem<Array<Answer>>(ANSWERS_KEY, this.answers);
+		}
 	}
 
 	answerFor(id: string): Answer {
-		if (!this.answers?.length)
-			this.resetAnswers();
-
 		let answer = this.answers.find(a => a.questionId == id);
 		if (answer === undefined) {
 			answer = {questionId: id, text: ''};
-			if (id)
-				this.answers.push(answer);
 		}
 		return answer;
-	}
-
-	resetAnswers() {
-		this.answers = [];
 	}
 
 	async recordAnswer(id: string) {
@@ -283,3 +306,11 @@ function blobToDataURL(blob: Blob): Promise<string> {
 		reader.readAsDataURL(blob);
 	});
 }
+
+const debounce = (fn: Function, ms = 300) => {
+	let timeoutId: ReturnType<typeof setTimeout>;
+	return function (this: any, ...args: any[]) {
+		clearTimeout(timeoutId);
+		timeoutId = setTimeout(() => fn.apply(this, args), ms);
+	};
+};
