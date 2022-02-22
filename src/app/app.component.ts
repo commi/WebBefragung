@@ -40,12 +40,12 @@ const ANSWERS_KEY = 'answers';
 		<section class="container-lg">
 
 			<ul class="list-group">
-				<li *ngFor="let q of this.questions" class="list-group-item">
+				<li *ngFor="let q of this.questions" class="list-group-item list-group-item-secondary">
 					<h5 class="fw-bold">{{q.title}}</h5>
 
 					<div *ngIf="q.type ==='likert'">
 
-						<div class="btn-group w-100  btn-group-lg" role="group" aria-label="Wie sehr würden Sie zustimmen?">
+						<div class="btn-group w-100 bg-white rounded-3 btn-group-lg" role="group" aria-label="Wie sehr würden Sie zustimmen?">
 							<input type="radio" class="btn-check" [name]="q.id+'likert'" [id]="q.id+'likert-1'" [(ngModel)]="answerFor(q.id).text" value="1" autocomplete="off">
 							<label type="button" class="btn btn-outline-primary likert-1" [for]="q.id+'likert-1'">trifft zu</label>
 							<input type="radio" class="btn-check" [name]="q.id+'likert'" [id]="q.id+'likert-2'" [(ngModel)]="answerFor(q.id).text" value="2" autocomplete="off">
@@ -102,7 +102,7 @@ const ANSWERS_KEY = 'answers';
 								<div class="d-flex">
 									<audio [src]="getAudioUrl(q.id)" controls preload="auto"></audio>
 									<button type="button"
-									        class="btn btn-outline-danger"
+									        class="btn btn-outline-danger bg-white"
 									        *ngIf="answerFor(q.id).attachmentUrl"
 									        (click)="deleteRecording(q.id)">
 										<i class="bi bi-trash"></i>

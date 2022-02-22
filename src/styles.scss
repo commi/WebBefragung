@@ -1,3 +1,10 @@
 @import "~bootstrap/scss/bootstrap";
+
+@import "/src/app/styles/bootstrap-dark-5/bootstrap-dark";
+
 @import "~bootstrap-icons/font/bootstrap-icons.css";
 
+audio::-webkit-media-controls-enclosure {
+	background-color: var(--bs-info);
+	border-radius: $border-radius-sm;
+}
