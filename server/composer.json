@@ -1,0 +1,6 @@
+{
+  "name": "webbefragung/server",
+  "require": {
+    "phpmailer/phpmailer": "*"
+  }
+}
